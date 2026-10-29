@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProposalForge — Proposal & Scope-of-Work Drafting Assistant</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">PF</div>
+      <div>
+        <div class="brand-name">ProposalForge</div>
+        <div class="brand-sub">Proposal &amp; SOW Assistant</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-btn active" data-view="discovery"><span class="ico">📝</span> Discovery Notes</button>
+      <button class="nav-btn" data-view="packages"><span class="ico">📦</span> Service Packages</button>
+      <button class="nav-btn" data-view="proposal"><span class="ico">📄</span> Proposal Draft</button>
+      <button class="nav-btn" data-view="drafts"><span class="ico">🗂️</span> Saved Drafts</button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="progress-steps">
+        <div class="step" id="step-notes"><span class="dot"></span> Notes added</div>
+        <div class="step" id="step-package"><span class="dot"></span> Package selected</div>
+        <div class="step" id="step-draft"><span class="dot"></span> Draft generated</div>
+      </div>
+      <button class="btn ghost small" id="themeToggle">🌙 Dark mode</button>
+      <div class="policy-note">🔒 Pricing is never invented — only approved rate cards are used.</div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+
+    <!-- ---------- DISCOVERY VIEW ---------- -->
+    <section class="view active" id="view-discovery">
+      <header class="view-head">
+        <div>
+          <h1>Discovery Notes</h1>
+          <p>Paste raw notes from your discovery call. The assistant extracts client details, goals, constraints and gaps.</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn ghost" id="loadSampleNotes">Load sample</button>
+          <button class="btn ghost" id="clearNotes">Clear</button>
+        </div>
+      </header>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Raw discovery notes</div>
+          <textarea id="notesInput" placeholder="e.g.
+Client: Harbor Lane Coffee Roasters
+Contact: Priya Nair (Owner)
+They want a new e-commerce website to sell beans online.
+Must integrate with Shopify and Mailchimp.
+Launch before holiday season (mid November).
+Budget around $12k.
+Decision maker: Priya, but her partner Raj also needs to sign off.
+Not sure if they want a blog yet.
+Existing brand guidelines exist."></textarea>
+          <div class="hint">Tip: one idea per line works best. Mention client, contact, goals, integrations, deadlines, budget, stakeholders.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Extracted intelligence <span class="badge soft" id="extractCount">0 items</span></div>
+          <div id="extractPanel" class="extract-panel">
+            <div class="empty">Start typing notes to see extracted details here.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Proposal settings</div>
+        <div class="form-grid">
+          <label>Client name <input id="fClient" placeholder="Auto-detected or type"></label>
+          <label>Primary contact <input id="fContact" placeholder="Auto-detected or type"></label>
+          <label>Prepared by <input id="fAuthor" placeholder="Your name / company"></label>
+          <label>Project start date <input id="fStart" type="date"></label>
+          <label>Proposal valid (days) <input id="fValid" type="number" value="30" min="1"></label>
+          <label>Currency <select id="fCurrency"><option>USD</option><option>INR</option><option>EUR</option><option>GBP</option></select></label>
+        </div>
+      </div>
+
+      <div class="next-bar">
+        <button class="btn primary" data-goto="packages">Next: Choose a service package →</button>
+      </div>
+    </section>
+
+    <!-- ---------- PACKAGES VIEW ---------- -->
+    <section class="view" id="view-packages">
+      <header class="view-head">
+        <div>
+          <h1>Service Packages</h1>
+          <p>Approved company templates. Select one to base the proposal on. Edit or add your own — they're saved in this browser.</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn ghost" id="resetPackages">Reset to defaults</button>
+          <button class="btn primary" id="newPackage">+ New package</button>
+        </div>
+      </header>
+
+      <div id="packageGrid" class="package-grid"></div>
+
+      <div class="next-bar">
+        <button class="btn ghost" data-goto="discovery">← Back</button>
+        <button class="btn primary" id="generateBtn">⚡ Generate proposal draft</button>
+      </div>
+    </section>
+
+    <!-- ---------- PROPOSAL VIEW ---------- -->
+    <section class="view" id="view-proposal">
+      <header class="view-head">
+        <div>
+          <h1>Proposal Draft</h1>
+          <p>Every section is editable. Items marked <span class="badge warn">needs confirmation</span> require client input before sending.</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn ghost" id="regenerateBtn">↻ Regenerate</button>
+          <button class="btn ghost" id="saveDraftBtn">💾 Save draft</button>
+          <div class="dropdown">
+            <button class="btn primary" id="exportMenuBtn">Export ▾</button>
+            <div class="dropdown-menu" id="exportMenu">
+              <button data-export="md">Markdown (.md)</button>
+              <button data-export="html">HTML (.html)</button>
+              <button data-export="json">JSON (.json)</button>
+              <button data-export="copy">Copy to clipboard</button>
+              <button data-export="print">Print / Save as PDF</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="proposal-layout">
+        <div class="proposal-toc card">
+          <div class="card-title">Sections</div>
+          <ul id="tocList"></ul>
+          <div class="divider"></div>
+          <div class="card-title">Readiness</div>
+          <div class="readiness">
+            <div class="ring" id="readinessRing"><span id="readinessPct">0%</span></div>
+            <div class="readiness-text" id="readinessText">Generate a draft to see readiness.</div>
+          </div>
+        </div>
+
+        <div class="proposal-doc" id="proposalDoc">
+          <div class="empty big">No draft yet. Add discovery notes, pick a package, then click <b>Generate</b>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- DRAFTS VIEW ---------- -->
+    <section class="view" id="view-drafts">
+      <header class="view-head">
+        <div>
+          <h1>Saved Drafts</h1>
+          <p>Drafts are stored locally in your browser.</p>
+        </div>
+        <div class="head-actions">
+          <input id="draftSearch" placeholder="Search drafts…" class="search">
+        </div>
+      </header>
+      <div id="draftList" class="draft-list"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ===== PACKAGE EDITOR MODAL ===== -->
+<div class="modal" id="pkgModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="pkgModalTitle">Edit package</h2>
+      <button class="icon-btn" id="pkgModalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>Package name <input id="pkgName"></label>
+      <label>Short description <input id="pkgDesc"></label>
+      <div class="form-grid">
+        <label>Typical duration (weeks) <input id="pkgWeeks" type="number" min="1"></label>
+        <label>Category <input id="pkgCat" placeholder="e.g. Web, Brand, Marketing"></label>
+      </div>
+      <label>Deliverables (one per line) <textarea id="pkgDeliverables" rows="5"></textarea></label>
+      <label>Default assumptions (one per line) <textarea id="pkgAssumptions" rows="4"></textarea></label>
+      <label>Default exclusions (one per line) <textarea id="pkgExclusions" rows="4"></textarea></label>
+      <label>Milestones (one per line, format: <code>Name | week</code>) <textarea id="pkgMilestones" rows="4"></textarea></label>
+      <label>Approved pricing line (leave blank if not approved) <input id="pkgPrice" placeholder="e.g. Fixed fee 8,500 — approved by Finance 2026-09"></label>
+      <div class="hint">⚠ The assistant will never generate a number here. If blank, the proposal shows a "Pricing to be confirmed" placeholder.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn danger ghost" id="pkgDelete">Delete</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="pkgCancel">Cancel</button>
+      <button class="btn primary" id="pkgSave">Save package</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
